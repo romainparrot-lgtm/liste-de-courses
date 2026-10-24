@@ -42,12 +42,28 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 12px 12px
 .empty{padding:28px 18px;text-align:center;color:var(--mu)}
 footer{display:flex;justify-content:space-between;align-items:center;padding:10px 18px 14px;font-size:13px;color:var(--mu)}
 footer button{border:1px solid var(--bd);background:var(--card);color:var(--ink);border-radius:10px;height:36px;padding:0 12px;font-size:14px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+#st{border:1px solid var(--bd);background:var(--card);color:var(--mu);border-radius:20px;height:32px;padding:0 12px;font-size:13px;display:flex;align-items:center;gap:6px;margin-top:6px;flex-shrink:0}
+#st i{width:8px;height:8px;border-radius:50%;background:var(--mu)}
+#st.ok{color:var(--ok)}#st.ok i{background:var(--ok)}
+#st.bad{color:var(--dg)}#st.bad i{background:var(--dg)}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:9}
+#ov[hidden]{display:none}
+.pn{background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:380px}
+.pn h2{margin:0 0 6px;font-size:20px}
+.pn p{margin:0 0 12px;font-size:14px;color:var(--mu)}
+.pn label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+.pn input{width:100%;height:44px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--ink);padding:0 12px;font-size:16px}
+#msg{min-height:20px;margin:10px 0 0!important;color:var(--dg)!important}
+.bt{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.bt button{height:40px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--ink);padding:0 14px;font-size:15px}
+.bt #sv{background:var(--ok);border-color:var(--ok);color:#fff}
 </style>
 </head>
 <body>
 <header>
-  <h1>Courses</h1>
-  <p id="sub"></p>
+  <div><h1>Courses</h1><p id="sub"></p></div>
+  <button id="st"><i></i><span id="stt">Local</span></button>
 </header>
 <div class="add">
   <input id="in" type="text" placeholder="Ex : 2 yaourts" enterkeyhint="done" autocomplete="off" autocapitalize="sentences">
@@ -58,38 +74,50 @@ footer button{border:1px solid var(--bd);background:var(--card);color:var(--ink)
   <button id="clr">Vider le panier</button>
   <span>Glissez vers la gauche pour supprimer</span>
 </footer>
-<script>
-var KEY='courses_data';
+<div id="ov" hidden><div class="pn">
+<h2>Synchronisation</h2>
+<p>Entrez le dépôt privé de données et le jeton d'accès GitHub. À faire une seule fois sur chaque téléphone.</p>
+<label for="rp">Dépôt de données</label>
+<input id="rp" type="text" placeholder="votre-nom/courses-data" autocapitalize="none" autocorrect="off" spellcheck="false">
+<label for="tk">Jeton d'accès</label>
+<input id="tk" type="password" placeholder="github_pat_..." autocapitalize="none" autocorrect="off" spellcheck="false">
+<p id="msg"></p>
+<div class="bt"><button id="sv">Enregistrer</button><button id="cn">Fermer</button><button id="lo">Se déconnecter</button></div>
+</div></div>
+<script>var KEY='courses_data',CFG='courses_cfg';
 var R=[["Fruits et légumes","pomme poire banane orange citron tomate carotte salade courgette oignon ail patate legume fruit fraise raisin concombre poireau champignon avocat"],["Boulangerie","pain baguette brioche croissant"],["Frais","lait beurre oeuf yaourt fromage creme jambon"],["Viandes et poissons","poulet steak boeuf porc saucisse poisson saumon thon viande"],["Épicerie","pate riz cafe sucre farine huile sel conserve biscuit cereale chocolat sauce"],["Boissons","eau jus soda biere vin"],["Surgelés","surgele glace pizza"],["Maison et hygiène","savon shampoing dentifrice papier lessive eponge"]];
 var TRASH='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 var CHECK='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
-
+function $(i){return document.getElementById(i)}
 function norm(s){return s.toLowerCase().replace(/œ/g,'oe').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function aisle(n){
   var w=norm(n).split(/[^a-z]+/).filter(Boolean);
   for(var i=0;i<R.length;i++){
     var ks=R[i][1].split(' ');
-    if(w.some(function(x){return ks.some(function(y){
-      return y.length<=3?(x===y||x===y+'s'):(x.indexOf(y)===0||(x.length>3&&y.indexOf(x)===0));
-    })}))return R[i][0];
+    if(w.some(function(x){return ks.some(function(y){return y.length<=3?(x===y||x===y+'s'):(x.indexOf(y)===0||(x.length>3&&y.indexOf(x)===0))})}))return R[i][0];
   }
   return 'Autre';
 }
 
-var data={v:1,next:1,items:[]};
-try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&Array.isArray(p.items))data=p}}catch(e){}
+var data={v:2,items:[]},cfg={repo:'',token:''},sha=null,busy=false,stat='local';
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&Array.isArray(p.items))data.items=p.items.map(function(x){if(typeof x.id==='number')x.id='l'+x.id;if(!x.u)x.u=Date.now();return x})}}catch(e){}
+try{var c=localStorage.getItem(CFG);if(c)cfg=JSON.parse(c)}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}}
+function saveCfg(){try{localStorage.setItem(CFG,JSON.stringify(cfg))}catch(e){}}
+function live(){return data.items.filter(function(x){return !x.d})}
+function find(id){return data.items.find(function(i){return i.id===id&&!i.d})}
+function changed(){save();render();clearTimeout(changed.t);changed.t=setTimeout(sync,600)}
 
 function row(x){
   var ck='<button class="ck'+(x.c?' on':'')+'" data-a="tg" data-id="'+x.id+'" aria-label="'+(x.c?'Remettre dans la liste':'Mettre dans le panier')+'">'+(x.c?CHECK:'')+'</button>';
   var right=x.c?(x.q>1?'<span class="x">x'+x.q+'</span>':''):'<div class="qt"><button data-a="m" data-id="'+x.id+'" aria-label="Moins">−</button><b>'+x.q+'</b><button data-a="p" data-id="'+x.id+'" aria-label="Plus">+</button></div>';
   return '<div class="w"><div class="bgd">'+TRASH+'</div><div class="fr'+(x.c?' done':'')+'" data-id="'+x.id+'">'+ck+'<span class="nm">'+esc(x.n)+'</span>'+right+'</div></div>';
 }
-
 function render(){
-  var todo=data.items.filter(function(x){return !x.c}),done=data.items.filter(function(x){return x.c});
-  document.getElementById('sub').textContent=todo.length+' à acheter · '+done.length+' dans le panier';
+  var L=live(),todo=L.filter(function(x){return !x.c}),done=L.filter(function(x){return x.c});
+  $('sub').textContent=todo.length+' à acheter · '+done.length+' dans le panier';
   var h='';
   R.map(function(r){return r[0]}).concat('Autre').forEach(function(a){
     var l=todo.filter(function(x){return x.a===a});
@@ -97,45 +125,112 @@ function render(){
   });
   if(!todo.length)h+='<p class="empty">Rien à acheter pour le moment. Ajoutez un article ci-dessus.</p>';
   if(done.length)h+='<p class="sec">Dans le panier</p><div class="box">'+done.map(row).join('')+'</div>';
-  document.getElementById('list').innerHTML=h;
+  $('list').innerHTML=h;
   document.querySelectorAll('.fr').forEach(bind);
 }
-
 function bind(f){
-  var id=+f.dataset.id,sx=0,dx=0,on=false;
+  var id=f.dataset.id,sx=0,dx=0,on=false;
   f.onpointerdown=function(e){if(e.target.closest('button'))return;on=true;sx=e.clientX;dx=0;f.setPointerCapture(e.pointerId);f.style.transition='none'};
   f.onpointermove=function(e){if(!on)return;dx=Math.min(0,e.clientX-sx);f.style.transform='translateX('+dx+'px)'};
   f.onpointerup=function(){
     if(!on)return;on=false;f.style.transition='transform .2s';
-    if(dx<-90){f.style.transform='translateX(-110%)';setTimeout(function(){data.items=data.items.filter(function(x){return x.id!==id});save();render()},180)}
+    if(dx<-90){f.style.transform='translateX(-110%)';setTimeout(function(){var x=find(id);if(x){x.d=1;x.u=Date.now()}changed()},180)}
     else f.style.transform='translateX(0)';
   };
   f.onpointercancel=function(){on=false;f.style.transition='transform .2s';f.style.transform='translateX(0)'};
 }
-
-document.getElementById('list').addEventListener('click',function(e){
+$('list').addEventListener('click',function(e){
   var b=e.target.closest('button[data-a]');if(!b)return;
-  var x=data.items.find(function(i){return i.id===+b.dataset.id});if(!x)return;
+  var x=find(b.dataset.id);if(!x)return;
   var a=b.dataset.a;
   if(a==='tg')x.c=x.c?0:1;
   if(a==='p')x.q+=1;
   if(a==='m')x.q=Math.max(1,x.q-1);
-  save();render();
+  x.u=Date.now();changed();
 });
-
 function add(){
-  var i=document.getElementById('in'),n=i.value.trim();if(!n)return;
+  var i=$('in'),n=i.value.trim();if(!n)return;
   var m=n.match(/^(\d+)\s*x?\s+(.+)$/),q=1;
   if(m){q=+m[1];n=m[2]}
   n=n.charAt(0).toUpperCase()+n.slice(1);
-  data.items.push({id:data.next++,n:n,q:q,c:0,a:aisle(n)});
-  i.value='';save();render();
+  data.items.push({id:uid(),n:n,q:q,c:0,a:aisle(n),u:Date.now()});
+  i.value='';changed();
 }
-document.getElementById('addb').onclick=add;
-document.getElementById('in').onkeydown=function(e){if(e.key==='Enter')add()};
-document.getElementById('clr').onclick=function(){data.items=data.items.filter(function(x){return !x.c});save();render()};
+$('addb').onclick=add;
+$('in').onkeydown=function(e){if(e.key==='Enter')add()};
+$('clr').onclick=function(){live().forEach(function(x){if(x.c){x.d=1;x.u=Date.now()}});changed()};
 
-render();
+function merge(a,b){
+  var m={};a.concat(b).forEach(function(x){var y=m[x.id];if(!y||x.u>y.u)m[x.id]=x});
+  var lim=Date.now()-2592000000;
+  return Object.keys(m).map(function(k){return m[k]}).filter(function(x){return !(x.d&&x.u<lim)});
+}
+function same(a,b){
+  if(a.length!==b.length)return false;
+  var m={};b.forEach(function(x){m[x.id]=x.u});
+  return a.every(function(x){return m[x.id]===x.u});
+}
+function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
+function dec(s){return JSON.parse(decodeURIComponent(escape(atob(s.replace(/\n/g,'')))))}
+function api(method,body){
+  return fetch('https://api.github.com/repos/'+cfg.repo+'/contents/liste.json',{method:method,cache:'no-store',headers:{'Authorization':'Bearer '+cfg.token,'Accept':'application/vnd.github+json'},body:body?JSON.stringify(body):undefined});
+}
+function setStat(s){
+  stat=s;var b=$('st'),t=$('stt');
+  var L={local:['Local',''],ing:['Synchro…',''],ok:['Synchronisé','ok'],off:['Hors ligne',''],auth:['Accès refusé','bad'],err:['Erreur','bad']}[s];
+  t.textContent=L[0];b.className=L[1];
+}
+async function sync(){
+  if(!cfg.repo||!cfg.token){setStat('local');return stat}
+  if(busy)return 'busy';
+  if(!navigator.onLine){setStat('off');return stat}
+  busy=true;setStat('ing');
+  try{
+    for(var t=0;t<3;t++){
+      var r=await api('GET'),remote=[];sha=null;
+      if(r.status===401||r.status===403){setStat('auth');return stat}
+      if(r.status!==404){
+        if(!r.ok)throw new Error('get');
+        var j=await r.json();sha=j.sha;
+        try{remote=dec(j.content).items||[]}catch(e){}
+      }
+      var merged=merge(data.items,remote);
+      if(!same(merged,data.items)){data.items=merged;save();render()}
+      if(same(merged,remote)&&sha){setStat('ok');return stat}
+      var body={message:'maj',content:enc({v:2,items:merged})};
+      if(sha)body.sha=sha;
+      var w=await api('PUT',body);
+      if(w.ok){setStat('ok');return stat}
+      if(w.status===409||w.status===422)continue;
+      if(w.status===401||w.status===403||w.status===404){setStat('auth');return stat}
+      throw new Error('put');
+    }
+    setStat('err');
+  }catch(e){setStat(navigator.onLine?'err':'off')}
+  finally{busy=false}
+  return stat;
+}
+
+$('st').onclick=function(){$('rp').value=cfg.repo;$('tk').value=cfg.token;$('msg').textContent='';$('ov').hidden=false};
+$('cn').onclick=function(){$('ov').hidden=true};
+$('lo').onclick=function(){cfg={repo:'',token:''};saveCfg();$('ov').hidden=true;setStat('local')};
+$('sv').onclick=async function(){
+  var r=$('rp').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/+$/,'');
+  var tk=$('tk').value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(r)||!tk){$('msg').textContent='Entrez le dépôt (nom/dépôt) et le jeton.';return}
+  cfg={repo:r,token:tk};saveCfg();$('msg').textContent='Connexion…';
+  var s=await sync();
+  if(s==='ok'){$('ov').hidden=true}
+  else if(s==='auth')$('msg').textContent='Accès refusé. Vérifiez le nom du dépôt et le droit Contents en lecture/écriture.';
+  else if(s==='off')$('msg').textContent='Pas de connexion pour le moment.';
+  else $('msg').textContent='Connexion impossible. Réessayez.';
+};
+
+render();setStat(cfg.repo&&cfg.token?'ing':'local');sync();
+setInterval(function(){if(!document.hidden)sync()},8000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)sync()});
+window.addEventListener('online',sync);
+window.addEventListener('offline',function(){if(cfg.repo)setStat('off')});
 
 if('serviceWorker' in navigator){
   var had=!!navigator.serviceWorker.controller,reloaded=false;
