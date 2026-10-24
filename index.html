@@ -120,11 +120,11 @@ header{background:linear-gradient(rgba(10,20,14,.82),rgba(10,20,14,0))}
 </footer>
 <div id="ov2" hidden><div class="pn">
 <h2>Ticket de caisse</h2>
-<p>Entrez le prix par rayon. Laissez vide si vous ne le savez pas.</p>
+<p id="tn"></p>
 <label for="td">Date</label>
 <input id="td" type="date">
-<div id="tl"></div>
-<p style="margin:12px 0 0;color:var(--ink)">Total : <b id="tt">0,00 €</b></p>
+<label for="tm">Total payé</label>
+<input id="tm" inputmode="decimal" placeholder="0,00 €" autocomplete="off">
 <div class="bt"><button id="tsv">Enregistrer et vider</button><button id="tno">Vider sans prix</button><button id="tcn">Annuler</button></div>
 </div></div>
 <div id="ov" hidden><div class="pn">
@@ -309,7 +309,7 @@ function renderDep(){
   h+='<div class="tot"><span>Total</span><b>'+money(tot)+'</b><small>'+L.length+(L.length>1?' passages en caisse':' passage en caisse')+'</small></div>';
   if(!L.length){h+='<p class="empty">Aucune dépense sur cette période. Le prix est demandé quand vous videz le panier.</p>'}
   else{
-    h+='<div class="cd"><h3>Par rayon</h3>'+ks.map(function(k){
+    h+='<div class="cd"><h3>Par rayon'+(L.some(function(x){return x.e})?' · estimé selon le nombre d’articles':'')+'</h3>'+ks.map(function(k){
       var pc=tot?by[k]/tot*100:0;
       return '<div class="rw"><div class="rt"><span>'+esc(k)+' · '+Math.round(pc)+' %</span><b>'+money(by[k])+'</b></div><div class="bar"><i style="width:'+pc.toFixed(1)+'%;background:'+(FB[slug(k)]||'#5d6b63')+'"></i></div></div>';
     }).join('')+'</div>';
@@ -344,30 +344,27 @@ $('tL').onclick=function(){show('L')};
 $('tD').onclick=function(){show('D')};
 
 function itemLabel(x){return x.q>1?x.n+' x'+x.q:x.n}
+function num(v){var n=parseFloat((v||'').replace(',','.'));return n>0?Math.round(n*100)/100:0}
 function openTicket(){
   var done=live().filter(function(x){return x.c});
   if(!done.length)return;
-  var by={};done.forEach(function(x){(by[x.a]=by[x.a]||[]).push(x)});
-  var h='';
-  aisles().forEach(function(a){
-    if(!by[a])return;
-    h+='<label>'+esc(a)+'<small style="display:block;font-size:12px;color:var(--mu)">'+esc(by[a].map(itemLabel).join(', '))+'</small></label><input data-a="'+esc(a)+'" inputmode="decimal" placeholder="0,00 €" autocomplete="off">';
-  });
-  $('tl').innerHTML=h;$('td').value=ymd(new Date());updTot();$('ov2').hidden=false;
+  var n=done.reduce(function(s,x){return s+x.q},0);
+  $('tn').textContent=n+(n>1?' articles dans le panier.':' article dans le panier.');
+  $('tm').value='';$('td').value=ymd(new Date());$('ov2').hidden=false;
 }
-function num(v){var n=parseFloat((v||'').replace(',','.'));return n>0?Math.round(n*100)/100:0}
-function updTot(){var t=0;document.querySelectorAll('#tl input').forEach(function(i){t+=num(i.value)});$('tt').textContent=money(t)}
-$('tl').addEventListener('input',updTot);
 function finish(withPrice){
   var done=live().filter(function(x){return x.c});
-  if(withPrice){
-    var by={};done.forEach(function(x){(by[x.a]=by[x.a]||[]).push(x)});
-    var lines=[],tot=0;
-    document.querySelectorAll('#tl input').forEach(function(i){
-      var m=num(i.value);
-      if(m){lines.push({a:i.dataset.a,m:m,it:(by[i.dataset.a]||[]).map(itemLabel)});tot+=m}
+  var total=withPrice?num($('tm').value):0;
+  if(total){
+    var by={},W=0;
+    done.forEach(function(x){(by[x.a]=by[x.a]||[]).push(x);W+=x.q});
+    var lines=[],acc=0,ks=aisles().filter(function(a){return by[a]});
+    ks.forEach(function(a,i){
+      var w=by[a].reduce(function(s,x){return s+x.q},0);
+      var m=i===ks.length-1?Math.max(0,Math.round((total-acc)*100)/100):Math.round(total*w/W*100)/100;
+      acc+=m;lines.push({a:a,m:m,it:by[a].map(itemLabel)});
     });
-    if(lines.length)data.spend.push({id:uid(),dt:$('td').value||ymd(new Date()),lines:lines,t:Math.round(tot*100)/100,u:Date.now()});
+    data.spend.push({id:uid(),dt:$('td').value||ymd(new Date()),lines:lines,t:total,e:1,u:Date.now()});
   }
   done.forEach(function(x){x.d=1;x.u=Date.now()});
   $('ov2').hidden=true;changed();

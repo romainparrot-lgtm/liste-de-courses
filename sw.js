@@ -1,4 +1,4 @@
-const VERSION = 'courses-v7';
+const VERSION = 'courses-v8';
 const FILES = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'fond.jpg'];
 const IMAGES = ['rayon-fruits-et-legumes', 'rayon-boulangerie', 'rayon-frais', 'rayon-viandes-et-poissons', 'rayon-epicerie', 'rayon-boissons', 'rayon-surgeles', 'rayon-maison-et-hygiene', 'rayon-autre'].map(n => 'images/' + n + '.jpg');
 
