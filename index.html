@@ -94,8 +94,8 @@ header{background:linear-gradient(rgba(10,20,14,.82),rgba(10,20,14,0))}
 .tr:last-child{border-bottom:0}
 .th{display:flex;justify-content:space-between;font-size:15px;gap:8px}
 .tr button{border:0;background:none;color:var(--dg);font-size:13px;padding:0}
-footer{flex-direction:column;align-items:stretch;gap:8px;padding:12px 14px 14px;border-top:1px solid rgba(255,255,255,.1);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-footer #clr{height:54px;border:0;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 18px;font-size:17px;font-weight:700;letter-spacing:.2px;color:#fff;background:linear-gradient(135deg,#5cc287,#2e7d4f);box-shadow:0 6px 18px rgba(46,125,79,.45),inset 0 1px 0 rgba(255,255,255,.28);transition:transform .12s,opacity .2s}
+footer{flex-direction:row;align-items:stretch;gap:10px;padding:12px 14px 14px;border-top:1px solid rgba(255,255,255,.1);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+footer #clr{flex:1;min-width:0;height:54px;border:0;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 18px;font-size:17px;font-weight:700;letter-spacing:.2px;color:#fff;background:linear-gradient(135deg,#5cc287,#2e7d4f);box-shadow:0 6px 18px rgba(46,125,79,.45),inset 0 1px 0 rgba(255,255,255,.28);transition:transform .12s,opacity .2s}
 footer #clr:active{transform:scale(.97)}
 footer #clr svg{flex-shrink:0}
 footer #clr em{font-style:normal;font-size:14px;font-weight:700;min-width:26px;height:26px;padding:0 8px;border-radius:13px;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center}
@@ -105,6 +105,12 @@ footer #clr.off em{display:none}
 footer{margin-bottom:calc(-1 * (env(safe-area-inset-top,0px) + env(safe-area-inset-bottom,0px)));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 main{padding-bottom:calc(12px + env(safe-area-inset-top,0px) + env(safe-area-inset-bottom,0px))}
 }
+footer #alt{flex-shrink:0;width:54px;height:54px;padding:0;border-radius:16px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;transition:transform .12s,opacity .2s}
+footer #alt:active{transform:scale(.94)}
+footer #alt.go{opacity:.5;pointer-events:none}
+#toast{position:fixed;left:50%;bottom:calc(110px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);max-width:86%;padding:11px 18px;border-radius:14px;background:rgba(10,20,14,.94);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:15px;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:60}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+html.dep{background:linear-gradient(rgba(10,20,14,.35),rgba(10,20,14,.35)),url(fond-depenses.jpg) center/cover no-repeat,#14241b}
 </style>
 
 </head>
@@ -121,8 +127,10 @@ main{padding-bottom:calc(12px + env(safe-area-inset-top,0px) + env(safe-area-ins
 <main id="list"></main>
 <main id="dep" style="display:none"></main>
 <footer>
+  <button id="alt" aria-label="Envoyer une alerte"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></button>
   <button id="clr" class="off"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h7.6a1.5 1.5 0 0 0 1.5-1.1L20 8H6.2"/><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg><b id="clrt">Vider le panier</b><em id="clrn"></em></button>
 </footer>
+<div id="toast"></div>
 <div id="ov2" hidden><div class="pn">
 <h2>Ticket de caisse</h2>
 <p id="tn"></p>
@@ -141,6 +149,10 @@ main{padding-bottom:calc(12px + env(safe-area-inset-top,0px) + env(safe-area-ins
 <input id="tk" type="password" placeholder="github_pat_..." autocapitalize="none" autocorrect="off" spellcheck="false">
 <p id="msg"></p>
 <div class="bt"><button id="sv">Enregistrer</button><button id="cn">Fermer</button><button id="lo">Se déconnecter</button></div>
+<h2 style="margin-top:22px">Alertes</h2>
+<p>Autorise ce téléphone à recevoir les alertes envoyées avec la cloche, même appli fermée.</p>
+<div class="bt" style="margin-top:0"><button id="alb">Activer les alertes</button></div>
+<p id="pmsg" style="margin:10px 0 0"></p>
 </div></div>
 <script>var KEY='courses_data',CFG='courses_cfg';
 var R=[["Fruits et légumes","pomme poire banane orange citron tomate carotte salade courgette oignon ail patate legume fruit fraise raisin concombre poireau champignon avocat"],["Boulangerie","pain baguette brioche croissant"],["Frais","lait beurre oeuf yaourt fromage creme jambon"],["Viandes et poissons","poulet steak boeuf porc saucisse poisson saumon thon viande"],["Épicerie","pate riz cafe sucre farine huile sel conserve biscuit cereale chocolat sauce"],["Boissons","eau jus soda biere vin"],["Surgelés","surgele glace pizza"],["Maison et hygiène","savon shampoing dentifrice papier lessive eponge"]];
@@ -160,6 +172,7 @@ function aisle(n){
 }
 
 var data={v:3,items:[],spend:[]},cfg={repo:'',token:''},sha=null,busy=false,stat='local';
+var DID='x';try{DID=localStorage.getItem('courses_did')||Math.random().toString(36).slice(2,8);localStorage.setItem('courses_did',DID)}catch(e){}
 try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&Array.isArray(p.items))data.items=p.items.map(function(x){if(typeof x.id==='number')x.id='l'+x.id;if(!x.u)x.u=Date.now();return x})}}catch(e){}
 try{var rw=localStorage.getItem(KEY);if(rw){var pp=JSON.parse(rw);if(pp&&Array.isArray(pp.spend))data.spend=pp.spend}}catch(e){}
 try{var c=localStorage.getItem(CFG);if(c)cfg=JSON.parse(c)}catch(e){}
@@ -280,7 +293,7 @@ async function sync(){
       var merged=merge(data.items,remote),ms=merge(data.spend,rs);
       if(!same(merged,data.items)||!same(ms,data.spend)){data.items=merged;data.spend=ms;save();render();if(view==='D')renderDep()}
       if(same(merged,remote)&&same(ms,rs)&&sha){setStat('ok');return stat}
-      var body={message:'maj',content:enc({v:3,items:merged,spend:ms})};
+      var body={message:'maj:'+DID,content:enc({v:3,items:merged,spend:ms})};
       if(sha)body.sha=sha;
       var w=await api('PUT',body);
       if(w.ok){setStat('ok');return stat}
@@ -294,7 +307,64 @@ async function sync(){
   return stat;
 }
 
-$('st').onclick=function(){$('rp').value=cfg.repo;$('tk').value=cfg.token;$('msg').textContent='';$('ov').hidden=false};
+var VAPID='BEynj2nHyirEQpj99qzutOefdt2dL1YXnWRBXIwGSp9cIHwfDwkl7ZEj22dvYA60k_1xq-eLD8lyGr8rYKNU7U4';
+function u8(b){var p='='.repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,'+').replace(/_/g,'/')),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
+function aapi(method,body,f){return fetch('https://api.github.com/repos/'+cfg.repo+'/contents/'+(f||'abonnements.json'),{method:method,cache:'no-store',headers:{'Authorization':'Bearer '+cfg.token,'Accept':'application/vnd.github+json'},body:body?JSON.stringify(body):undefined})}
+async function saveSub(sub){
+  for(var t=0;t<3;t++){
+    var r=await aapi('GET'),list=[],sh=null;
+    if(r.status!==404){if(!r.ok)return false;var j=await r.json();sh=j.sha;try{list=dec(j.content).subs||[]}catch(e){}}
+    list=list.filter(function(x){return x.id!==DID});list.push({id:DID,sub:sub.toJSON()});
+    var b={message:'abo:'+DID,content:enc({subs:list})};if(sh)b.sha=sh;
+    var w=await aapi('PUT',b);
+    if(w.ok)return true;
+    if(w.status===409||w.status===422)continue;
+    return false;
+  }
+  return false;
+}
+var tt=0;
+function toast(m){var e=$('toast');e.textContent=m;e.className='on';clearTimeout(tt);tt=setTimeout(function(){e.className=''},2600)}
+$('alt').onclick=async function(){
+  if(!cfg.repo||!cfg.token){toast('Connectez d\'abord la synchronisation');return}
+  if(!confirm('Envoyer une alerte à l\'autre téléphone ?'))return;
+  var b=$('alt');b.className='go';toast('Envoi…');
+  try{
+    await sync();
+    for(var t=0;t<3;t++){
+      var r=await aapi('GET',null,'alerte.json'),sh=null;
+      if(r.ok){sh=(await r.json()).sha}
+      else if(r.status!==404){toast('Échec de l\'envoi');return}
+      var body={message:'alerte:'+DID,content:enc({id:DID,t:Date.now()})};if(sh)body.sha=sh;
+      var w=await aapi('PUT',body,'alerte.json');
+      if(w.ok){toast('Alerte envoyée');return}
+      if(w.status===409||w.status===422)continue;
+      toast('Échec de l\'envoi');return;
+    }
+    toast('Échec de l\'envoi');
+  }catch(e){toast('Échec de l\'envoi')}
+  finally{b.className=''}
+};
+function alertState(){
+  var m=$('pmsg');
+  if(typeof Notification==='undefined'){m.textContent='Ajoutez d\'abord l\'appli à l\'écran d\'accueil pour activer les alertes.';m.style.color='';return}
+  m.style.color='';
+  m.textContent=Notification.permission==='granted'?'Alertes autorisées sur ce téléphone.':(Notification.permission==='denied'?'Alertes bloquées : à réautoriser dans Réglages > Notifications.':'');
+}
+$('alb').onclick=async function(){
+  var m=$('pmsg');m.style.color='';
+  try{
+    if(!cfg.repo||!cfg.token){m.textContent='Connectez d\'abord la synchronisation ci-dessus.';return}
+    if(typeof Notification==='undefined'||!('serviceWorker' in navigator)||!('PushManager' in window)){m.textContent='Ajoutez d\'abord l\'appli à l\'écran d\'accueil (iOS 16.4 minimum).';return}
+    m.textContent='Activation…';
+    var p=await Notification.requestPermission();
+    if(p!=='granted'){m.textContent='Notifications refusées. À autoriser dans Réglages > Notifications.';return}
+    var reg=await navigator.serviceWorker.ready;
+    var sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(VAPID)});
+    m.textContent=(await saveSub(sub))?'Alertes activées sur ce téléphone.':'Échec de l\'enregistrement. Réessayez.';
+  }catch(e){m.textContent='Impossible d\'activer les alertes.'}
+};
+$('st').onclick=function(){alertState();$('rp').value=cfg.repo;$('tk').value=cfg.token;$('msg').textContent='';$('ov').hidden=false};
 $('cn').onclick=function(){$('ov').hidden=true};
 $('lo').onclick=function(){cfg={repo:'',token:''};saveCfg();$('ov').hidden=true;setStat('local')};
 $('sv').onclick=async function(){
@@ -351,8 +421,10 @@ $('dep').addEventListener('click',function(e){
     changed();renderDep();
   }
 });
+try{(new Image()).src='fond-depenses.jpg'}catch(e){}
 function show(v){
   view=v;
+  document.documentElement.classList.toggle('dep',v==='D');
   $('tL').className=v==='L'?'on':'';$('tD').className=v==='D'?'on':'';
   document.querySelector('.add').style.display=v==='L'?'':'none';
   $('list').style.display=v==='L'?'':'none';
