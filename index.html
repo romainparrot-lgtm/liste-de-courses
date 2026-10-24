@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2e7d4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Courses">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Courses</title>
+<style>
+:root{--bg:#eef3ee;--card:#fff;--ink:#14281f;--mu:#6b7d73;--bd:#dbe4dd;--ok:#2e7d4f;--dg:#d4453b;--soft:#e4ede6}
+@media (prefers-color-scheme:dark){:root{--bg:#101a15;--card:#18251e;--ink:#e8f0ea;--mu:#8fa397;--bd:#27382e;--ok:#4fae78;--dg:#e06257;--soft:#1f2f26}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{padding:18px 18px 10px}
+h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.5px}
+#sub{margin:2px 0 0;font-size:14px;color:var(--mu)}
+.add{display:flex;gap:8px;padding:6px 18px 12px}
+.add input{flex:1;min-width:0;height:46px;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--ink);padding:0 14px;font-size:16px;outline:none}
+.add input:focus{border-color:var(--ok)}
+.add button{width:46px;height:46px;border:0;border-radius:12px;background:var(--ok);color:#fff;font-size:26px;line-height:1}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 12px 12px}
+.sec{margin:12px 6px 6px;font-size:13px;font-weight:600;color:var(--mu)}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+.w{position:relative;overflow:hidden;border-bottom:1px solid var(--bd)}
+.w:last-child{border-bottom:0}
+.bgd{position:absolute;inset:0;background:var(--dg);display:flex;align-items:center;justify-content:flex-end;padding-right:20px;color:#fff}
+.fr{position:relative;background:var(--card);display:flex;align-items:center;gap:12px;padding:10px 14px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.ck{width:26px;height:26px;flex-shrink:0;border-radius:50%;border:2px solid var(--bd);background:transparent;padding:0;display:flex;align-items:center;justify-content:center;color:#fff}
+.ck.on{background:var(--ok);border-color:var(--ok)}
+.nm{flex:1;min-width:0;font-size:17px;overflow-wrap:anywhere}
+.done .nm{color:var(--mu);text-decoration:line-through}
+.qt{display:flex;align-items:center;gap:4px}
+.qt button{width:32px;height:32px;border:0;border-radius:10px;background:var(--soft);color:var(--ink);font-size:20px;padding:0;line-height:1}
+.qt b{min-width:22px;text-align:center;font-size:16px}
+.x{font-size:13px;color:var(--mu)}
+.empty{padding:28px 18px;text-align:center;color:var(--mu)}
+footer{display:flex;justify-content:space-between;align-items:center;padding:10px 18px 14px;font-size:13px;color:var(--mu)}
+footer button{border:1px solid var(--bd);background:var(--card);color:var(--ink);border-radius:10px;height:36px;padding:0 12px;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Courses</h1>
+  <p id="sub"></p>
+</header>
+<div class="add">
+  <input id="in" type="text" placeholder="Ex : 2 yaourts" enterkeyhint="done" autocomplete="off" autocapitalize="sentences">
+  <button id="addb" aria-label="Ajouter">+</button>
+</div>
+<main id="list"></main>
+<footer>
+  <button id="clr">Vider le panier</button>
+  <span>Glissez vers la gauche pour supprimer</span>
+</footer>
+<script>
+var KEY='courses_data';
+var R=[["Fruits et légumes","pomme poire banane orange citron tomate carotte salade courgette oignon ail patate legume fruit fraise raisin concombre poireau champignon avocat"],["Boulangerie","pain baguette brioche croissant"],["Frais","lait beurre oeuf yaourt fromage creme jambon"],["Viandes et poissons","poulet steak boeuf porc saucisse poisson saumon thon viande"],["Épicerie","pate riz cafe sucre farine huile sel conserve biscuit cereale chocolat sauce"],["Boissons","eau jus soda biere vin"],["Surgelés","surgele glace pizza"],["Maison et hygiène","savon shampoing dentifrice papier lessive eponge"]];
+var TRASH='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+var CHECK='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
+
+function norm(s){return s.toLowerCase().replace(/œ/g,'oe').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function aisle(n){
+  var w=norm(n).split(/[^a-z]+/).filter(Boolean);
+  for(var i=0;i<R.length;i++){
+    var ks=R[i][1].split(' ');
+    if(w.some(function(x){return ks.some(function(y){
+      return y.length<=3?(x===y||x===y+'s'):(x.indexOf(y)===0||(x.length>3&&y.indexOf(x)===0));
+    })}))return R[i][0];
+  }
+  return 'Autre';
+}
+
+var data={v:1,next:1,items:[]};
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&Array.isArray(p.items))data=p}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}}
+
+function row(x){
+  var ck='<button class="ck'+(x.c?' on':'')+'" data-a="tg" data-id="'+x.id+'" aria-label="'+(x.c?'Remettre dans la liste':'Mettre dans le panier')+'">'+(x.c?CHECK:'')+'</button>';
+  var right=x.c?(x.q>1?'<span class="x">x'+x.q+'</span>':''):'<div class="qt"><button data-a="m" data-id="'+x.id+'" aria-label="Moins">−</button><b>'+x.q+'</b><button data-a="p" data-id="'+x.id+'" aria-label="Plus">+</button></div>';
+  return '<div class="w"><div class="bgd">'+TRASH+'</div><div class="fr'+(x.c?' done':'')+'" data-id="'+x.id+'">'+ck+'<span class="nm">'+esc(x.n)+'</span>'+right+'</div></div>';
+}
+
+function render(){
+  var todo=data.items.filter(function(x){return !x.c}),done=data.items.filter(function(x){return x.c});
+  document.getElementById('sub').textContent=todo.length+' à acheter · '+done.length+' dans le panier';
+  var h='';
+  R.map(function(r){return r[0]}).concat('Autre').forEach(function(a){
+    var l=todo.filter(function(x){return x.a===a});
+    if(l.length)h+='<p class="sec">'+a+'</p><div class="box">'+l.map(row).join('')+'</div>';
+  });
+  if(!todo.length)h+='<p class="empty">Rien à acheter pour le moment. Ajoutez un article ci-dessus.</p>';
+  if(done.length)h+='<p class="sec">Dans le panier</p><div class="box">'+done.map(row).join('')+'</div>';
+  document.getElementById('list').innerHTML=h;
+  document.querySelectorAll('.fr').forEach(bind);
+}
+
+function bind(f){
+  var id=+f.dataset.id,sx=0,dx=0,on=false;
+  f.onpointerdown=function(e){if(e.target.closest('button'))return;on=true;sx=e.clientX;dx=0;f.setPointerCapture(e.pointerId);f.style.transition='none'};
+  f.onpointermove=function(e){if(!on)return;dx=Math.min(0,e.clientX-sx);f.style.transform='translateX('+dx+'px)'};
+  f.onpointerup=function(){
+    if(!on)return;on=false;f.style.transition='transform .2s';
+    if(dx<-90){f.style.transform='translateX(-110%)';setTimeout(function(){data.items=data.items.filter(function(x){return x.id!==id});save();render()},180)}
+    else f.style.transform='translateX(0)';
+  };
+  f.onpointercancel=function(){on=false;f.style.transition='transform .2s';f.style.transform='translateX(0)'};
+}
+
+document.getElementById('list').addEventListener('click',function(e){
+  var b=e.target.closest('button[data-a]');if(!b)return;
+  var x=data.items.find(function(i){return i.id===+b.dataset.id});if(!x)return;
+  var a=b.dataset.a;
+  if(a==='tg')x.c=x.c?0:1;
+  if(a==='p')x.q+=1;
+  if(a==='m')x.q=Math.max(1,x.q-1);
+  save();render();
+});
+
+function add(){
+  var i=document.getElementById('in'),n=i.value.trim();if(!n)return;
+  var m=n.match(/^(\d+)\s*x?\s+(.+)$/),q=1;
+  if(m){q=+m[1];n=m[2]}
+  n=n.charAt(0).toUpperCase()+n.slice(1);
+  data.items.push({id:data.next++,n:n,q:q,c:0,a:aisle(n)});
+  i.value='';save();render();
+}
+document.getElementById('addb').onclick=add;
+document.getElementById('in').onkeydown=function(e){if(e.key==='Enter')add()};
+document.getElementById('clr').onclick=function(){data.items=data.items.filter(function(x){return !x.c});save();render()};
+
+render();
+
+if('serviceWorker' in navigator){
+  var had=!!navigator.serviceWorker.controller,reloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){if(had&&!reloaded){reloaded=true;location.reload()}});
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>
