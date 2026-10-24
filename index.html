@@ -95,13 +95,16 @@ header{background:linear-gradient(rgba(10,20,14,.82),rgba(10,20,14,0))}
 .th{display:flex;justify-content:space-between;font-size:15px;gap:8px}
 .tr button{border:0;background:none;color:var(--dg);font-size:13px;padding:0}
 footer{flex-direction:column;align-items:stretch;gap:8px;padding:12px 14px 14px;border-top:1px solid rgba(255,255,255,.1);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-footer span{text-align:center;font-size:12px;opacity:.85}
 footer #clr{height:54px;border:0;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 18px;font-size:17px;font-weight:700;letter-spacing:.2px;color:#fff;background:linear-gradient(135deg,#5cc287,#2e7d4f);box-shadow:0 6px 18px rgba(46,125,79,.45),inset 0 1px 0 rgba(255,255,255,.28);transition:transform .12s,opacity .2s}
 footer #clr:active{transform:scale(.97)}
 footer #clr svg{flex-shrink:0}
 footer #clr em{font-style:normal;font-size:14px;font-weight:700;min-width:26px;height:26px;padding:0 8px;border-radius:13px;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center}
 footer #clr.off{background:rgba(255,255,255,.08);color:var(--mu);box-shadow:none}
 footer #clr.off em{display:none}
+@media (display-mode:standalone){
+footer{margin-bottom:calc(-1 * (env(safe-area-inset-top,0px) + env(safe-area-inset-bottom,0px)));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+main{padding-bottom:calc(12px + env(safe-area-inset-top,0px) + env(safe-area-inset-bottom,0px))}
+}
 </style>
 
 </head>
@@ -119,7 +122,6 @@ footer #clr.off em{display:none}
 <main id="dep" style="display:none"></main>
 <footer>
   <button id="clr" class="off"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h7.6a1.5 1.5 0 0 0 1.5-1.1L20 8H6.2"/><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg><b id="clrt">Vider le panier</b><em id="clrn"></em></button>
-  <span>Glissez vers la gauche pour supprimer</span>
 </footer>
 <div id="ov2" hidden><div class="pn">
 <h2>Ticket de caisse</h2>
